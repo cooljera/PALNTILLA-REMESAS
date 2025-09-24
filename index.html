@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Remesas — Plantilla Móvil</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#fb4b08">
+  <link rel="icon" href="icons/icon-192.png">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fffdf8;
+      margin: 0;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #fb4b08;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .inputs {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .inputs label {
+      font-size: 1rem;
+      margin-right: 0.5rem;
+    }
+    .inputs input {
+      width: 6rem;
+      padding: 0.3rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .btns {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: #fb4b08;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #fb4b0822;
+      transition: background 0.2s;
+    }
+    button:active {
+      background: #d13c00;
+    }
+    .calc {
+      background: #fff;
+      border-radius: 8px;
+      margin: 0 1rem 1rem 1rem;
+      padding: 1rem;
+      box-shadow: 0 2px 8px #fb4b0811;
+    }
+    .calc label {
+      font-size: 0.95rem;
+      margin-right: 0.5rem;
+    }
+    .calc input {
+      width: 5rem;
+      padding: 0.3rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background: #fff;
+      margin-right: 0.5rem;
+    }
+    .calc .row {
+      margin-bottom: 0.7rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 0 1rem 0;
+      background: #fff;
+      box-shadow: 0 2px 8px #fb4b0811;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.7rem 0.3rem;
+      text-align: center;
+      border-bottom: 1px solid #f3e6d7;
+      font-size: 1.05rem;
+    }
+    th {
+      background: #fb4b08;
+      color: #fff;
+      font-weight: bold;
+      border-bottom: 2px solid #fffdf8;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .sticky-btns {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fffdf8ee;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      padding: 0.7rem 0;
+      box-shadow: 0 -2px 8px #fb4b0811;
+      z-index: 10;
+    }
+    .condiciones {
+      margin: 1.5rem 1rem 5rem 1rem;
+      font-size: 0.98rem;
+      color: #444;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px #fb4b0811;
+      padding: 1rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 600px) {
+      .inputs, .calc, .condiciones { font-size: 0.98rem; }
+      th, td { font-size: 0.98rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>Remesas — Plantilla Móvil</header>
+  <form class="inputs" onsubmit="return false;">
+    <label>Tasa del día (COP/Bs): <input id="tasa" type="number" step="0.01" value="29.90" min="0"></label>
+    <label>BCV (Bs/USD): <input id="bcv" type="number" step="0.01" value="166.48" min="0"></label>
+  </form>
+  <div class="btns">
+    <button onclick="generarTabla()">Generar</button>
+    <button onclick="limpiarTodo()">Limpiar</button>
+  </div>
+  <div class="calc">
+    <div class="row">
+      <label>USD → COP:</label>
+      <input id="usd2cop" type="number" step="0.01" min="0" placeholder="USD">
+      <button onclick="calcularCOP()">Calcular</button>
+      <span id="usd2cop_result"></span>
+    </div>
+    <div class="row">
+      <label>COP → USD:</label>
+      <input id="cop2usd" type="number" step="1" min="0" placeholder="COP">
+      <button onclick="calcularUSD()">Calcular</button>
+      <span id="cop2usd_result"></span>
+    </div>
+  </div>
+  <div id="tabla-container"></div>
+  <div class="sticky-btns">
+    <button onclick="descargarJPG()">Descargar JPG</button>
+    <button onclick="enviarWhatsApp()">WhatsApp</button>
+  </div>
+  <div class="condiciones">
+    <b>Condiciones:</b><br>
+    Horario: 10:00 a.m. – 7:00 p.m.<br>
+    Solicite el número de cuenta vigente al momento del depósito (puede cambiar).<br>
+    Datos por escrito. No recibimos fotografías. Comprobante legible.<br>
+    Tiempo de procesamiento: 10 min a 2 horas (según sistema y orden de llegada).<br>
+    Puede pagar por transferencia o directamente en el local.
+  </div>
+  <script>
+    const montos = [10000,20000,30000,40000,50000,70000,80000,90000,100000];
+    function getTasa() { return parseFloat(document.getElementById('tasa').value)||0; }
+    function getBCV() { return parseFloat(document.getElementById('bcv').value)||0; }
+    function generarTabla() {
+      const tasa = getTasa(), bcv = getBCV();
+      let html = '<table><thead><tr><th>COP</th><th>USD</th><th>Bs</th></tr></thead><tbody>';
+      montos.forEach(cop => {
+        const bs = Math.floor(cop/tasa);
+        const usd = +(bs/bcv).toFixed(2);
+        html += `<tr><td>${cop.toLocaleString()}</td><td>${usd}</td><td>${bs.toLocaleString()}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      document.getElementById('tabla-container').innerHTML = html;
+    }
+    function limpiarTodo() {
+      document.getElementById('tasa').value = '';
+      document.getElementById('bcv').value = '';
+      document.getElementById('usd2cop').value = '';
+      document.getElementById('cop2usd').value = '';
+      document.getElementById('usd2cop_result').textContent = '';
+      document.getElementById('cop2usd_result').textContent = '';
+      document.getElementById('tabla-container').innerHTML = '';
+    }
+    function calcularCOP() {
+      const usd = parseFloat(document.getElementById('usd2cop').value)||0;
+      const tasa = getTasa(), bcv = getBCV();
+      if (usd>0 && tasa>0 && bcv>0) {
+        const cop = Math.ceil(usd*bcv)*tasa;
+        document.getElementById('usd2cop_result').textContent = `→ ${Math.ceil(cop).toLocaleString()} COP`;
+      } else {
+        document.getElementById('usd2cop_result').textContent = '';
+      }
+    }
+    function calcularUSD() {
+      const cop = parseFloat(document.getElementById('cop2usd').value)||0;
+      const tasa = getTasa(), bcv = getBCV();
+      if (cop>0 && tasa>0 && bcv>0) {
+        const bs = Math.floor(cop/tasa);
+        const usd = +(bs/bcv).toFixed(2);
+        document.getElementById('cop2usd_result').textContent = `→ ${usd} USD (${bs.toLocaleString()} Bs)`;
+      } else {
+        document.getElementById('cop2usd_result').textContent = '';
+      }
+    }
+    function descargarJPG() {
+      const tasa = getTasa(), bcv = getBCV();
+      const canvas = document.createElement('canvas');
+      canvas.width = 900; canvas.height = 900;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fffdf8'; ctx.fillRect(0,0,900,900);
+      ctx.fillStyle = '#fb4b08'; ctx.font = 'bold 36px Segoe UI';
+      ctx.fillText('Remesas — Plantilla Móvil', 40, 60);
+      ctx.font = '24px Segoe UI'; ctx.fillStyle = '#222';
+      ctx.fillText(`Tasa: ${tasa} | BCV: ${bcv}`, 40, 110);
+      ctx.font = 'bold 22px Segoe UI'; ctx.fillStyle = '#fb4b08';
+      ctx.fillText('COP      USD      Bs', 40, 160);
+      ctx.font = '20px Segoe UI'; ctx.fillStyle = '#222';
+      let y = 200;
+      montos.forEach(cop => {
+        const bs = Math.floor(cop/tasa);
+        const usd = +(bs/bcv).toFixed(2);
+        ctx.fillText(`${cop.toLocaleString().padEnd(8)} ${usd.toString().padEnd(8)} ${bs.toLocaleString()}`, 40, y);
+        y += 32;
+      });
+      ctx.font = '18px Segoe UI'; ctx.fillStyle = '#444';
+      y += 30;
+      ctx.fillText('Horario: 10:00 a.m. – 7:00 p.m.', 40, y); y+=24;
+      ctx.fillText('Solicite el número de cuenta vigente al momento del depósito (puede cambiar).', 40, y); y+=24;
+      ctx.fillText('Datos por escrito. No recibimos fotografías. Comprobante legible.', 40, y); y+=24;
+      ctx.fillText('Tiempo de procesamiento: 10 min a 2 horas (según sistema y orden de llegada).', 40, y); y+=24;
+      ctx.fillText('Puede pagar por transferencia o directamente en el local.', 40, y);
+      // Safari/iOS: abrir en nueva pestaña
+      const url = canvas.toDataURL('image/jpeg');
+      window.open(url, '_blank');
+    }
+    function enviarWhatsApp() {
+      const tasa = getTasa(), bcv = getBCV();
+      const txt = `Remesas — Plantilla Móvil\nTasa: ${tasa}\nBCV: ${bcv}\nHorario: 10:00 a.m. – 7:00 p.m.`;
+      const wa = `https://wa.me/?text=${encodeURIComponent(txt)}`;
+      window.open(wa, '_blank');
+    }
+    // Autogenerar tabla al cargar
+    window.onload = generarTabla;
+    // Registrar SW
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>

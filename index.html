@@ -155,14 +155,14 @@
   <div class="calc">
     <div class="row">
       <label>USD → COP:</label>
-      <input id="usd2cop" type="number" step="0.01" min="0" placeholder="USD">
-      <button onclick="calcularCOP()">Calcular</button>
+      <input id="usd2cop" type="number" step="0.01" min="0" placeholder="USD" oninput="calcularCOP()">
+      <button onclick="calcularCOP()" style="padding:0 0.7rem;min-width:2rem;font-size:1.2rem;">→</button>
       <span id="usd2cop_result"></span>
     </div>
     <div class="row">
       <label>COP → USD:</label>
-      <input id="cop2usd" type="number" step="1" min="0" placeholder="COP">
-      <button onclick="calcularUSD()">Calcular</button>
+      <input id="cop2usd" type="number" step="1" min="0" placeholder="COP" oninput="calcularUSD()">
+      <button onclick="calcularUSD()" style="padding:0 0.7rem;min-width:2rem;font-size:1.2rem;">→</button>
       <span id="cop2usd_result"></span>
     </div>
   </div>
@@ -224,7 +224,7 @@
         document.getElementById('cop2usd_result').textContent = '';
       }
     }
-    function descargarJPG() {
+    function descargarJPG(callback) {
       const tasa = getTasa(), bcv = getBCV();
       const canvas = document.createElement('canvas');
       canvas.width = 900; canvas.height = 900;
@@ -251,15 +251,35 @@
       ctx.fillText('Datos por escrito. No recibimos fotografías. Comprobante legible.', 40, y); y+=24;
       ctx.fillText('Tiempo de procesamiento: 10 min a 2 horas (según sistema y orden de llegada).', 40, y); y+=24;
       ctx.fillText('Puede pagar por transferencia o directamente en el local.', 40, y);
-      // Safari/iOS: abrir en nueva pestaña
       const url = canvas.toDataURL('image/jpeg');
-      window.open(url, '_blank');
+      if (typeof callback === 'function') {
+        callback(url);
+      } else {
+        // Safari/iOS: abrir en nueva pestaña
+        window.open(url, '_blank');
+      }
     }
     function enviarWhatsApp() {
-      const tasa = getTasa(), bcv = getBCV();
-      const txt = `Remesas — Plantilla Móvil\nTasa: ${tasa}\nBCV: ${bcv}\nHorario: 10:00 a.m. – 7:00 p.m.`;
-      const wa = `https://wa.me/?text=${encodeURIComponent(txt)}`;
-      window.open(wa, '_blank');
+      descargarJPG(function(url) {
+        // WhatsApp no permite enviar imágenes directamente por URL, pero intentamos abrir el chat con la imagen en una nueva pestaña
+        // El usuario puede guardar la imagen y luego compartirla manualmente
+        if (navigator.share) {
+          fetch(url)
+            .then(res => res.blob())
+            .then(blob => {
+              const file = new File([blob], 'remesa.jpg', {type: 'image/jpeg'});
+              navigator.share({
+                files: [file],
+                title: 'Remesas',
+                text: 'Remesas — Plantilla Móvil'
+              });
+            });
+        } else {
+          // Fallback: abrir la imagen en nueva pestaña y mostrar mensaje
+          window.open(url, '_blank');
+          alert('Comparte la imagen manualmente por WhatsApp.');
+        }
+      });
     }
     // Autogenerar tabla al cargar
     window.onload = generarTabla;
